@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id
+  email    String   @unique
+  givenName     String?
+  familyName    String?
+  picture       String?
+  
+  File     File[]
+  Message  Message[]
+  customerId String? @unique @map(name: "customer_id")
+  subscriptionId String? @unique @map(name: "subscription_id")
+  priceId String? @unique @map(name: "price_id")
+  currentPeriodEnd DateTime? @map(name: "current_period_end")
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  SUCCESS
+}
+
+model File {
+  id        String   @id @default(cuid())
+  name      String
+  
+  uploadStatus UploadStatus @default(PENDING)
+
+  url       String
+  key       String
+  pagesAmt  Int?
+  messages  Message[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model Message{
+  id        String   @id @default(cuid())
+  text      String
+  isUserMessage Boolean
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  fileID    String?
+  File      File?    @relation(fields: [fileID], references: [id])
+}
